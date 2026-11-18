@@ -1,6 +1,6 @@
 {
   "name": "dsh-prompt-inject",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Appends condition-scoped prompt snippets to the persona section of a matching DeepSeek Harness session's system prompt, with a settings card and a per-session override panel.",
   "type": "module",
   "license": "MIT",

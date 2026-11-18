@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.6 — 2026-11-18
+
+- 入口改回输入框上方：删除 0.2.5 的顶部标签视图（`conversation.view`）与它的 `.pinin-view` 样式、`InjectView` 组件；重新注册 `conversation.composer.dock`（id `prompt-inject-composer`、order 900、`inject: sessionInject`），与开场区 `hero.options` 共用同一颗 `InjectButton`
+- 面板仍是那一个 Modal（`shell.overlay`），交互、接口、三态语义一律未动
+- 测试：浏览器半区 60 → 61 项（dock 注册与 id/order/inject 面、点击后面板只拉一次 /session、面板保存走 POST、无 sessionId 时按钮照旧渲染；并断言 `conversation.view` 不再注册）
+
 ## 0.2.5 — 2026-11-18
 
 - 入口从输入框上方搬到会话顶部标签行：「系统提示词注入」现在是 `conversation.view` 上的真标签（id `prompt-inject`、`order:900`、`label:'提示词注入'`），与「对话 / 审查 / 上下文 / 统计」并列；`conversation.composer.dock` 的注册已删除

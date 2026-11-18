@@ -158,16 +158,14 @@
 - 上移/下移/删除；新增规则（id 形如 `r-<随机>`）
 - 保存：POST 全量 config；成功后回填宿主返回值并清脏；失败显示 error；脏状态关闭设置页仍被拦截
 
-### 5.1 会话注入面板：顶部标签视图 + 开场区按钮 + 覆盖层 Modal
+### 5.1 会话注入面板：输入框上方按钮 + 开场区按钮 + 覆盖层 Modal
 - 四处注册，各自在 `ctx.slots.inject(...)` 内 `ctx.slots.register(...)`，且都经 `safeInject(ctx, slotName, make)` 逐 slot try/catch —— 某个 slot 在别的宿主版本里不存在时，不得连坐其余注册：
-  - `conversation.view` / id `prompt-inject` / order 900 / `label: '提示词注入'` / `inject: sessionInject` → 顶部标签视图（与「对话 / 审查 / 上下文 / 统计」并列的真标签）
-  - `conversation.hero.options` / id `prompt-inject-hero` / order 900 / `inject: sessionInject` → 按钮（新会话开场区；`ConversationContent.tsx:135` 只在 `sessionId !== undefined` 时渲染该行，故真正的「什么都没选中」形态没有按钮，那时也没有可注入的会话）
+  - `conversation.composer.dock` / id `prompt-inject-composer` / order 900 / `inject: sessionInject` → 输入框上方那颗「系统提示词注入」按钮（正常会话的主入口）
+  - `conversation.hero.options` / id `prompt-inject-hero` / order 900 / `inject: sessionInject` → 同一颗按钮（新会话开场区；`ConversationContent.tsx:135` 只在 `sessionId !== undefined` 时渲染该行，故真正的「什么都没选中」形态没有按钮）
   - `shell.overlay` / id `prompt-inject-panel` / order 900 → 覆盖层面板（scope=root）
-  - 已下线：`conversation.composer.dock`（原来那个输入框上方的按钮）。测试断言它的注册不再存在。
-- 标签行由官方 `ConversationSessionHeader` 渲染（`ConversationSession.tsx:222-254`），标签项来自 `apply.ts:210-222` 遍历 `slots.entries('conversation.view')`，`label` 经 `resolveSlotLabel(entry.options.label) ?? id` 归一（`apply.ts:218`）—— 字符串 label 合法，本插件 `settings.section` 早就是纯字符串。标签行内部没有别的插槽孔，所以「并列在标签行」只有 `conversation.view` 一条路；`conversation.session.header.views.actions` 进的是「…」下拉菜单内部，不是并列。
-- 标签视图的正文由 `DefaultConversationViews.tsx:36-41` 的 `renderSlot('conversation.view', {...}, { only: viewId })` 渲染，**一次只渲染当前选中的那一个**；空白态（`hideChrome`）下整个标签行与正文视图区都不渲染，所以空白态只靠 hero 按钮 + Modal。视图区自身无 padding / max-width（`ConversationRoot.module.css:325-330` 的 `.viewArea` 只有 flex 列），因此标签视图根节点自带盒模型：`.pinin-view` = `max-width:720px` + `padding:20px 24px 32px` + 居中 + 纵向可滚。
-- 标签视图版式：一行标题「系统提示词注入」（`.pinin-view-title`）+ 正文面板 + 页脚按钮行。**没有「关闭」按钮**（页脚里那一颗只在 Modal 形态出现）；根节点带 `data-pin="inject-view"`，内含的正文仍是同一套 `data-pin="inject-panel"｜inject-list｜inject-row｜inject-custom`。
-- 面板内容只有一份：`useSessionPanel({ sessionId, open, onClose })` 返回 `{ body, footer }`，`InjectView`（标签）与 `InjectPanel`（Modal）都只负责包壳。标签视图的 `sessionId` 取自注册时 `inject` 混进 props 的那个值（`scope:'session'`），**不读模块级 bridge** —— 否则切标签时会拿到另一个会话的 id。
+  - 已下线：`conversation.view`（0.2.5 试过的顶部标签视图，用户反馈「会话途中从上方标签页注入」不要）。测试断言它的注册不再存在。
+- 两个入口共用同一颗 `InjectButton`：`data-pin="inject-button"`，外壳 `.pinin-launcher[data-pin="inject-launcher"]`。点击只做两件事——把会话 id 记进模块级 bridge、置 `bridge.open = true`；面板本体在 `shell.overlay` 里按 bridge 状态渲染。
+- 面板内容只有一份：`useSessionPanel({ sessionId, open, onClose })` 返回 `{ body, footer }`，`InjectPanel`（Modal）只负责包壳。
 - `sessionInject(sessionId)` 返回 `{ sessionId }`，宿主把它混进组件 props；该值可能是 `undefined`。`InjectButton` 以「这个 key 是否存在」判定是否有权威值，存在即以 props 为准（`undefined` 也认），访问器抛错才回落到模块级 bridge —— 否则卸载/重挂后按钮会残留上一个会话的 `data-session`。
 - 面板优先用 `@deepseek-ai/dsh-client-ui-primitives` 的 `Modal`（经 `safeRequire`，`typeof Modal === 'function'` 才用），取不到则用内置 `FallbackModal`（`.pinin-mask/.pinin-dialog`）；props 为 `{ open, onClose, title: '系统提示词注入', closeLabel: '关闭', footer, className }`；**不传 `description`**（弹窗标题下方没有第二段说明，见下一条）。`FallbackModal` 本来就不渲染 description，两套 Modal 的顶部现在一致。
 - 面板顶部只有标题与「关闭」按钮，没有说明段：body 里的 `p.pin-sub[data-pin="inject-hint"]` 与 Modal 的 `description` 两处都删了（原来一个在标题下、一个在正文顶，说的是同一件事）。`preSession` 逻辑保留，只服务页脚那句状态话。**保留不动**的两句是状态而非叙述：`p.pin-sub[data-pin="inject-override-note"]`「当前会话已有覆盖：没勾中的规则一条都不注入。」与页脚「会话未创建：保存会先暂存」/「只对当前会话生效，宿主重启即失效」
