@@ -20,6 +20,12 @@
 
 会话顶部的标签行（「对话 / 审查 / 上下文 / 统计」那一排）里多了一个**提示词注入**标签。点进去勾选本次会话要注入哪几条 —— 这里的勾选会盖掉条件判定。下面的自定义文本框写的东西只属于这次会话，保存后落成一条会话专用规则。
 
+### 三、在对话里看到它
+
+![对话中的注入](docs/inject-in-chat.png)
+
+新开一个会话，让它把系统提示词里以「切记的是」开头的那段原样复述出来 —— 它答出来的就是规则正文。提示词确实进了这次会话的上下，不是我写在这里吓人的说明。
+
 ## 能干什么
 
 | 能力 | 说明 |
@@ -108,6 +114,12 @@ A rule is three things: **a name**, **a body**, and **which sessions it applies 
 ![Session panel](docs/session-panel.png)
 
 The session tab strip (the row with “对话 / 审查 / 上下文 / 统计”) gains a **提示词注入** tab. Tick the rules this session should inject — the ticks override the condition matching. Text typed into the box below becomes a rule that belongs to this session only.
+
+### 3. See it in a conversation
+
+![Injection in a chat](docs/inject-in-chat.png)
+
+Start a new session and ask it to repeat verbatim the paragraph of its system prompt that starts with “切记的是” — what it answers back is the rule body. The prompt really is in that session's context; this is not a description I wrote for effect.
 
 ## What it does
 
