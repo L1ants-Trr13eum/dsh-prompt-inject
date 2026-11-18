@@ -1,6 +1,6 @@
 # Changelog
 
-## 未发布 — 0.2.5
+## 0.2.5 — 2026-11-18
 
 - 入口从输入框上方搬到会话顶部标签行：「系统提示词注入」现在是 `conversation.view` 上的真标签（id `prompt-inject`、`order:900`、`label:'提示词注入'`），与「对话 / 审查 / 上下文 / 统计」并列；`conversation.composer.dock` 的注册已删除
 - 面板内容抽成 `useSessionPanel({ sessionId, open, onClose })`，标签视图（`.pinin-view`，`max-width:720px`、无弹窗遮罩、无关闭按钮）与覆盖层 Modal 共用同一份 body/footer，不再有两套逻辑

@@ -5,13 +5,13 @@
   "type": "module",
   "license": "MIT",
   "author": "Trr1133um",
-  "homepage": "https://github.com/Trr1133um/dsh-prompt-inject#readme",
+  "homepage": "https://github.com/L1ants-Trr13eum/dsh-prompt-inject#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Trr1133um/dsh-prompt-inject.git"
+    "url": "git+https://github.com/L1ants-Trr13eum/dsh-prompt-inject.git"
   },
   "bugs": {
-    "url": "https://github.com/Trr1133um/dsh-prompt-inject/issues"
+    "url": "https://github.com/L1ants-Trr13eum/dsh-prompt-inject/issues"
   },
   "keywords": [
     "deepseek",
