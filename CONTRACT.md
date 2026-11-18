@@ -158,9 +158,9 @@
 - 上移/下移/删除；新增规则（id 形如 `r-<随机>`）
 - 保存：POST 全量 config；成功后回填宿主返回值并清脏；失败显示 error；脏状态关闭设置页仍被拦截
 
-### 5.1 会话注入面板：输入框上方按钮 + 开场区按钮 + 覆盖层 Modal
+### 5.1 会话注入面板：输入框下方状态条按钮 + 开场区按钮 + 覆盖层 Modal
 - 四处注册，各自在 `ctx.slots.inject(...)` 内 `ctx.slots.register(...)`，且都经 `safeInject(ctx, slotName, make)` 逐 slot try/catch —— 某个 slot 在别的宿主版本里不存在时，不得连坐其余注册：
-  - `conversation.composer.dock` / id `prompt-inject-composer` / order 900 / `inject: sessionInject` → 输入框上方那颗「系统提示词注入」按钮（正常会话的主入口）
+  - `conversation.composer.dock` / id `prompt-inject-composer` / order 900 / `inject: sessionInject` → 「系统提示词注入」按钮（正常会话的主入口）。本机实测（2026-11-18，DSH 0.2.2-rc.3 桌面端）：这个 slot 落在**输入框下方的状态条**右侧，与「tok/s」「缓存命中」同一行，而不是输入框正上方——位置由宿主决定，插件不控制
   - `conversation.hero.options` / id `prompt-inject-hero` / order 900 / `inject: sessionInject` → 同一颗按钮（新会话开场区；`ConversationContent.tsx:135` 只在 `sessionId !== undefined` 时渲染该行，故真正的「什么都没选中」形态没有按钮）
   - `shell.overlay` / id `prompt-inject-panel` / order 900 → 覆盖层面板（scope=root）
   - 已下线：`conversation.view`（0.2.5 试过的顶部标签视图，用户反馈「会话途中从上方标签页注入」不要）。测试断言它的注册不再存在。

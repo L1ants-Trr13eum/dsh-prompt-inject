@@ -18,7 +18,7 @@
 
 ![会话注入面板](docs/session-panel.png)
 
-输入框上方有一颗**系统提示词注入**按钮（新会话开场区也有同一颗）。点开勾选本次会话要注入哪几条 —— 这里的勾选会盖掉条件判定。自定义文本框里写的东西只属于这次会话，保存后落成一条会话专用规则。
+输入框下方的状态条右侧有一颗**系统提示词注入**按钮（新会话开场区右上也有同一颗）。点开勾选本次会话要注入哪几条 —— 这里的勾选会盖掉条件判定。自定义文本框里写的东西只属于这次会话，保存后落成一条会话专用规则。
 
 ## 能干什么
 
@@ -107,7 +107,7 @@ A rule is three things: **a name**, **a body**, and **which sessions it applies 
 
 ![Session panel](docs/session-panel.png)
 
-A **系统提示词注入** button sits above the input box (the blank-session hero has the same one). Open it to tick which rules this session injects — the ticks override condition matching. Text typed into the box becomes a rule that belongs to this session only.
+A **系统提示词注入** button sits at the right end of the status strip under the input box (the blank-session hero has the same one, top right). Open it to tick which rules this session injects — the ticks override condition matching. Text typed into the box becomes a rule that belongs to this session only.
 
 ## What it does
 
