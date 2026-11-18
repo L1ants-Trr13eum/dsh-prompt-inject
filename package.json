@@ -1,0 +1,56 @@
+{
+  "name": "dsh-prompt-inject",
+  "version": "0.2.5",
+  "description": "Appends condition-scoped prompt snippets to the persona section of a matching DeepSeek Harness session's system prompt, with a settings card and a per-session override panel.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Trr1133um",
+  "homepage": "https://github.com/Trr1133um/dsh-prompt-inject#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Trr1133um/dsh-prompt-inject.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Trr1133um/dsh-prompt-inject/issues"
+  },
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "cordis",
+    "plugin",
+    "system-prompt",
+    "prompt-injection"
+  ],
+  "main": "lib/host/index.js",
+  "exports": {
+    ".": "./lib/host/index.js",
+    "./host": "./lib/host/index.js",
+    "./client": "./lib/client/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "CONTRACT.md",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test/00-all.mjs && node test/client-bundle.mjs",
+    "check": "node --check lib/host/index.js && node --check lib/host/config-store.js && node --check lib/host/match.js && node --check lib/host/routes.js && node --check lib/host/session-store.js && node --check lib/client/index.js",
+    "dist": "node scripts/build-dist.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  }
+}
