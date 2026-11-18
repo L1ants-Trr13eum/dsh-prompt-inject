@@ -37,6 +37,8 @@
 
 ## 安装
 
+先下载：[最新发布](https://github.com/L1ants-Trr13eum/dsh-prompt-inject/releases/latest)。`dsh-prompt-inject-0.2.5.zip` 是完整分发包（含安装脚本与独立 README），`dsh-prompt-inject-0.2.5.tgz` 是 npm 风格的插件包，给下面的 CLI 命令用。
+
 **A. 官方 CLI（推荐）**
 
 ```bash
@@ -209,6 +211,8 @@ The "提示词注入" (session prompt injection) tab in the session's top tab ro
 - Node ≥ 22 for tests and packaging only; the plugin itself has no runtime dependencies
 
 ## Install
+
+Download first: [latest release](https://github.com/L1ants-Trr13eum/dsh-prompt-inject/releases/latest). `dsh-prompt-inject-0.2.5.zip` is the full distribution (bundled install scripts and its own README); `dsh-prompt-inject-0.2.5.tgz` is the npm-style plugin package used by the CLI command below.
 
 **A. Official CLI (recommended)**
 
