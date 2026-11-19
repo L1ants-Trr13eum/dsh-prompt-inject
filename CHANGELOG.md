@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.7 — 2026-11-19
+
+- 入口回到会话顶部标签行（0.2.6 的改动作废）：重新注册 `conversation.view`（id `prompt-inject`、order 900、label「提示词注入」、`inject: sessionInject`），把 `InjectView` 与 `.pinin-view` 那组样式一起恢复（含半透明主题下的卡片底色与描边）；`conversation.composer.dock` 的注册再次删除
+- 标签视图与覆盖层 Modal 仍共用 `useSessionPanel` 那一份 body/footer，交互、接口、三态语义一律未动；新会话空白态（标签行整行不渲染）仍走开场区 `hero.options` 按钮 + Modal
+- 测试：浏览器半区 61 → 60 项（断言 `conversation.view` 的 id/order/label/inject 面与标签视图渲染，并断言 `conversation.composer.dock` 不再注册）
+
 ## 0.2.6 — 2026-11-18
 
 - 入口改回输入框下方（本机实测该 slot 落在状态条右侧）：删除 0.2.5 的顶部标签视图（`conversation.view`）与它的 `.pinin-view` 样式、`InjectView` 组件；重新注册 `conversation.composer.dock`（id `prompt-inject-composer`、order 900、`inject: sessionInject`），与开场区 `hero.options` 共用同一颗 `InjectButton`

@@ -586,10 +586,10 @@ globalThis.document = firstDoc.doc;
 globalThis.fetch = async () => jsonResponse(200, { ok: true });
 module.apply(fakeCtx);
 
-assert.equal(registrations.length, 4, "apply 后应注册四个 slot：设置卡片 + 输入框上方按钮 + 开场区按钮 + 覆盖层面板");
+assert.equal(registrations.length, 4, "apply 后应注册四个 slot：设置卡片 + 顶部标签视图 + 开场区按钮 + 覆盖层面板");
 assert.deepEqual(injections, [
   "settings.section",
-  "conversation.composer.dock",
+  "conversation.view",
   "conversation.hero.options",
   "shell.overlay",
 ]);
@@ -601,30 +601,31 @@ assert.equal(settingsReg.options.label, "提示词注入");
 assert.equal(typeof settingsReg.component, "function");
 ok("slots.register 收到 { name:'settings.section', id:'prompt-inject', order:60, label:'提示词注入' }");
 
-const dockReg = registrationOf("conversation.composer.dock");
+const viewReg = registrationOf("conversation.view");
 const heroReg = registrationOf("conversation.hero.options");
 const overlayReg = registrationOf("shell.overlay");
-assert.equal(registrationOf("conversation.view"), undefined, "会话顶部标签视图必须已经下线");
-assert.equal(dockReg.options.id, "prompt-inject-composer");
-assert.equal(dockReg.options.order, 900);
-assert.equal(dockReg.options.label, undefined, "dock 里不显示文字标签");
-assert.deepEqual(dockReg.options.inject("sess-1"), { sessionId: "sess-1" }, "composer.dock 的 inject 面把 sessionId 送进 props");
+assert.equal(registrationOf("conversation.composer.dock"), undefined, "输入框上方的 dock 注册必须已经移除");
+assert.equal(viewReg.options.id, "prompt-inject", "标签 id 就是插件 id（标签行靠它区分）");
+assert.equal(viewReg.options.order, 900);
+const viewLabel = typeof viewReg.options.label === "function" ? viewReg.options.label() : viewReg.options.label;
+assert.equal(viewLabel, "提示词注入", "标签文字经 resolveSlotLabel 归一，纯字符串即可");
+assert.deepEqual(viewReg.options.inject("sess-1"), { sessionId: "sess-1" }, "conversation.view 的 inject 面把 sessionId 送进 props");
 assert.equal(heroReg.options.id, "prompt-inject-hero");
 assert.equal(overlayReg.options.id, "prompt-inject-panel");
 assert.equal(heroReg.options.order, 900);
 assert.equal(overlayReg.options.order, 900);
 // id 只需在同一个 slot 内唯一（标签视图故意沿用插件 id 'prompt-inject'，与设置卡片同名不同 slot）
-for (const slotName of ["settings.section", "conversation.composer.dock", "conversation.hero.options", "shell.overlay"]) {
+for (const slotName of ["settings.section", "conversation.view", "conversation.hero.options", "shell.overlay"]) {
   const ids = registrations.filter((item) => item.options.name === slotName).map((item) => item.options.id);
   assert.equal(ids.length, 1, slotName + " 只注册一次");
 }
 assert.equal(new Set(registrations.map((item) => item.options.name)).size, registrations.length, "四个注册落在四个不同 slot 上");
-assert.equal(typeof dockReg.options.inject, "function", "composer.dock 必须带 inject 面才能拿到 sessionId");
+assert.equal(typeof viewReg.options.inject, "function", "conversation.view 必须带 inject 面才能拿到 sessionId");
 assert.equal(typeof heroReg.options.inject, "function", "hero.options 必须带 inject 面才能拿到 sessionId");
 assert.equal(overlayReg.options.inject, undefined, "shell.overlay 是 root scope，不该有 sessionId 注入面");
-assert.equal(dockReg.component, heroReg.component, "两个入口复用同一颗按钮组件");
+assert.notEqual(viewReg.component, heroReg.component, "标签视图与开场区按钮是两个组件");
 assert.equal(typeof overlayReg.component, "function");
-ok("四个 slot 注册且 id 唯一：composer.dock / hero.options（都带 inject 面）+ shell.overlay 面板，conversation.view 已下线");
+ok("四个 slot 注册且 id 唯一：view / hero.options（都带 inject 面）+ shell.overlay 面板，composer.dock 已移除");
 assert.equal(effects.length, 2, "apply 应挂两个 effect：样式 + 卡片注册");
 assert.equal(firstDoc.styles.length, 1, "样式标签应已注入");
 assert.equal(firstDoc.styles[0].getAttribute("data-plugin-css"), CSS_TAG);
@@ -1107,14 +1108,14 @@ function sessionFixture(store, sessionId) {
 
 globalThis.fetch = async () => jsonResponse(200, { ok: true });
 const m10 = freshModule();
-const dockReg10 = m10.slot("conversation.composer.dock");
+const viewReg10 = m10.slot("conversation.view");
 const heroReg10 = m10.slot("conversation.hero.options");
-assert.equal(m10.slot("conversation.view"), undefined, "conversation.view 不再注册");
-assert.deepEqual(dockReg10.options.inject("sess-42"), { sessionId: "sess-42" }, "composer.dock 靠 inject 面拿 sessionId");
+assert.equal(m10.slot("conversation.composer.dock"), undefined, "conversation.composer.dock 不再注册");
+assert.deepEqual(viewReg10.options.inject("sess-42"), { sessionId: "sess-42" }, "conversation.view 靠 inject 面拿 sessionId");
 assert.deepEqual(heroReg10.options.inject("sess-42"), { sessionId: "sess-42" }, "hero.options 同样靠 inject 面拿 sessionId");
 assert.deepEqual(heroReg10.options.inject(undefined), { sessionId: undefined });
 assert.equal(m10.slot("shell.overlay").options.inject, undefined, "shell.overlay 没有 sessionId 注入面");
-ok("inject 面：inject(sessionId) → { sessionId }；composer.dock 与 hero 按钮同源，conversation.view 已下线");
+ok("inject 面：inject(sessionId) → { sessionId }；标签视图与 hero 按钮同源，composer.dock 已下线");
 
 const buttonApp = createHarness();
 globalThis.document = buttonApp.doc;
@@ -1463,79 +1464,67 @@ assert.equal(textOf(subSpans()[0]), "启用", "再打开 ⇒ 回到「启用」"
 ok("总开关小字随 draft.enabled 在「启用 / 不启用」间切换，卡片内只此一处小字");
 toggleApp.unmount();
 
-// ══ 15.8 输入框上方按钮：dock 注册与它打开的面板 ═══════════════════════
-section("15.8 输入框上方按钮：conversation.composer.dock");
-const storeView15 = { override: null, rules: SESSION_RULES, defaultRuleIds: ["r-a"] };
-const fetchView15 = createFetch({
-  ["GET " + SESSION_URL]: () => jsonResponse(200, sessionFixture(storeView15, SESSION_ID)),
+// ══ 15.8 顶部标签视图：内联同一份面板 ═════════════════════════════════
+section("15.8 标签视图：conversation.view 里内联同一份面板");
+const storeView = { override: null, rules: SESSION_RULES, defaultRuleIds: ["r-a"] };
+const fetchView = createFetch({
+  ["GET " + SESSION_URL]: () => jsonResponse(200, sessionFixture(storeView, SESSION_ID)),
   ["POST " + SESSION_POST]: (init) => {
     const body = JSON.parse(init.body);
-    storeView15.override = { ruleIds: body.ruleIds.slice() };
-    return jsonResponse(200, { ok: true, session: sessionFixture(storeView15, SESSION_ID) });
+    storeView.override = { ruleIds: body.ruleIds.slice() };
+    return jsonResponse(200, { ok: true, session: sessionFixture(storeView, SESSION_ID) });
   },
 });
-globalThis.fetch = fetchView15;
-const mView15 = freshModule();
-const dockReg15 = mView15.slot("conversation.composer.dock");
-assert.ok(dockReg15, "composer.dock 必须已注册");
-const dockApp15 = createHarness();
-globalThis.document = dockApp15.doc;
-const dockTree15 = dockApp15.mount(dockReg15.component, dockReg15.options.inject(SESSION_ID));
-await flush(6);
-assert.equal(dockApp15.errors.length, 0, "按钮渲染不得抛错：" + dockApp15.errors.map(String).join("; "));
-const dockBtn15 = byPin(dockTree15, "inject-button")[0];
-assert.ok(dockBtn15, "按钮必须带 data-pin=inject-button");
-assert.equal(textOf(dockBtn15), "系统提示词注入");
-assert.equal(dockBtn15.props["data-session"], SESSION_ID, "按钮记下会话 id");
-assert.ok(classOf(byPin(dockTree15, "inject-launcher")[0]).split(/\s+/).includes("pinin-launcher"), "外壳用 .pinin-launcher");
-fire(dockBtn15, "onClick");
-await flush(4);
-assert.equal(dockApp15.errors.length, 0, "点击不得抛错：" + dockApp15.errors.map(String).join("; "));
-ok("dock 按钮：data-session 正确、外壳 .pinin-launcher、点击打开桥");
-
-const overlayReg15 = mView15.slot("shell.overlay");
-const panelApp15 = createHarness();
-globalThis.document = panelApp15.doc;
-panelApp15.mount(overlayReg15.component, {});
+globalThis.fetch = fetchView;
+const mView = freshModule();
+const viewReg15 = mView.slot("conversation.view");
+const viewApp = createHarness();
+globalThis.document = viewApp.doc;
+const viewTree = viewApp.mount(viewReg15.component, viewReg15.options.inject(SESSION_ID));
 await flush(30);
-assert.equal(panelApp15.errors.length, 0, "面板渲染不得抛错：" + panelApp15.errors.map(String).join("; "));
-assert.ok(byPin(panelApp15.tree, "inject-list")[0], "面板里是同一套 inject-list");
-assert.equal(byPin(panelApp15.tree, "inject-row").length, 3, "三条规则全部列出");
-const panelChecked15 = () => findAll(panelApp15.tree, (node) => node.props["data-pin"] === "inject-rule" && node.props.checked === true)
+assert.equal(viewApp.errors.length, 0, "标签视图渲染不得抛错：" + viewApp.errors.map(String).join("; "));
+const viewRoot = byPin(viewApp.tree, "inject-view")[0];
+assert.ok(viewRoot, "标签视图根节点必须带 data-pin=inject-view");
+assert.ok(classOf(viewRoot).split(/\s+/).includes("pinin-view"), "根节点用 .pinin-view 承载留白与最大宽度：" + classOf(viewRoot));
+assert.equal(textOf(viewRoot).includes("系统提示词注入"), true, "视图自带一行标题");
+assert.ok(byPin(viewApp.tree, "inject-list")[0], "标签视图里是同一套 inject-list");
+assert.equal(byPin(viewApp.tree, "inject-row").length, 3, "三条规则全部列出");
+const viewChecked = () => findAll(viewApp.tree, (node) => node.props["data-pin"] === "inject-rule" && node.props.checked === true)
   .map((node) => node.props["data-rule-id"]);
-assert.deepEqual(panelChecked15(), ["r-a"], "预勾选跟着宿主的 defaultRuleIds");
-assert.ok(byPin(panelApp15.tree, "inject-custom")[0], "自定义文本域在面板里");
-assert.equal(byPin(panelApp15.tree, "inject-hint").length, 0, "面板没有说明小字");
-const getsView15 = fetchView15.calls.filter((call) => call.method === "GET");
-assert.equal(getsView15.length, 1, "面板挂载拉一次会话状态");
-assert.equal(getsView15[0].url, SESSION_URL, "GET 带 sessionId —— 来自按钮写进桥的会话 id");
-ok("面板：三行勾选 + 自定义文本域 + 只拉一次 /session");
+assert.deepEqual(viewChecked(), ["r-a"], "预勾选跟着宿主的 defaultRuleIds");
+assert.ok(byPin(viewApp.tree, "inject-custom")[0], "标签视图里也有自定义文本域");
+assert.equal(byPin(viewApp.tree, "inject-close").length, 0, "标签视图不放「关闭」按钮");
+assert.equal(byPin(viewApp.tree, "inject-hint").length, 0, "标签视图也没有说明小字");
+const getsView = fetchView.calls.filter((call) => call.method === "GET");
+assert.equal(getsView.length, 1, "视图挂载拉一次会话状态");
+assert.equal(getsView[0].url, SESSION_URL, "GET 带 sessionId —— 来自 inject 面，不来自桥");
+ok("标签视图：data-pin=inject-view + 标题 + 三行勾选 + 自定义文本域，没有「关闭」按钮");
 
-fire(byPin(panelApp15.tree, "inject-rule")[1], "onChange", toggleEvent(true));
+fire(byPin(viewApp.tree, "inject-rule")[1], "onChange", toggleEvent(true));
 await flush(4);
-fire(byPin(panelApp15.tree.props.footer, "inject-save")[0], "onClick");
+fire(byPin(viewApp.tree, "inject-save")[0], "onClick");
 await flush(12);
-assert.equal(fetchView15.posts().length, 1, "保存直接 POST 给宿主");
-assert.deepEqual(JSON.parse(fetchView15.posts()[0].init.body), {
+assert.equal(fetchView.posts().length, 1, "视图里保存直接 POST 给宿主，不走桥暂存");
+assert.deepEqual(JSON.parse(fetchView.posts()[0].init.body), {
   sessionId: SESSION_ID,
   ruleIds: ["r-a", "r-b"],
-}, "POST 用桥里的 sessionId");
-ok("面板保存：POST /session（sessionId 来自桥）");
-panelApp15.unmount();
-dockApp15.unmount();
+}, "POST 用 inject 面给的 sessionId");
+ok("标签视图保存：直接 POST /session（sessionId 来自 slot props，不依赖桥）");
+viewApp.unmount();
 
-const bareDockApp15 = createHarness();
-globalThis.document = bareDockApp15.doc;
+const bareApp = createHarness();
+globalThis.document = bareApp.doc;
 globalThis.fetch = async () => jsonResponse(200, { ok: true, sessionId: null, override: null, defaultRuleIds: [], rules: SESSION_RULES });
-const mBare15 = freshModule();
-const bareReg15 = mBare15.slot("conversation.composer.dock");
-const bareTree15 = bareDockApp15.mount(bareReg15.component, {});
-await flush(6);
-assert.equal(bareDockApp15.errors.length, 0, "没有 sessionId 时按钮不得抛错");
-assert.ok(byPin(bareTree15, "inject-button")[0], "没有 sessionId 时按钮照旧渲染");
-assert.equal(byPin(bareTree15, "inject-button")[0].props["data-session"], "", "没有会话时 data-session 是空串");
-ok("无 sessionId：按钮仍然渲染（data-session 空）");
-bareDockApp15.unmount();
+bareApp.mount(viewReg15.component, {});
+await flush(30);
+assert.equal(bareApp.errors.length, 0, "没有 sessionId 时标签视图不得抛错：" + bareApp.errors.map(String).join("; "));
+assert.ok(isElement(bareApp.tree), "没有 sessionId 时仍然渲染");
+assert.ok(byPin(bareApp.tree, "inject-view")[0], "没有 sessionId 时根节点照旧");
+assert.equal(byPin(bareApp.tree, "inject-row").length, 3, "没有 sessionId 也列出规则（近似口径）");
+assert.equal(findAll(bareApp.tree, (node) => node.props["data-pin"] === "inject-rule" && node.props.checked === true).length, 2, "无 defaults 时本地兜底为所有 enabled 规则（r-off 不勾）");
+assert.ok(textOf(byPin(bareApp.tree, "inject-foot")[0]).includes("会话未创建：保存会先暂存"), "页脚仍是暂存那一句");
+ok("无 sessionId：标签视图渲染出候选（3 行、2 行预勾）且不抛错");
+bareApp.unmount();
 
 // ══ 16. 全局清洁 ══════════════════════════════════════════════════════
 section("16. 全局清洁");

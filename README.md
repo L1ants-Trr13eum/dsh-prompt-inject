@@ -18,7 +18,7 @@
 
 ![会话注入面板](docs/session-panel.png)
 
-输入框下方的状态条右侧有一颗**系统提示词注入**按钮（新会话开场区右上也有同一颗）。点开勾选本次会话要注入哪几条 —— 这里的勾选会盖掉条件判定。自定义文本框里写的东西只属于这次会话，保存后落成一条会话专用规则。
+会话上方的标签行里多出一个**提示词注入**标签（新会话开场区右上是一颗同名按钮）。切过去勾选本次会话要注入哪几条 —— 这里的勾选会盖掉条件判定。自定义文本框里写的东西只属于这次会话，保存后落成一条会话专用规则。
 
 ## 能干什么
 
@@ -37,7 +37,7 @@
 
 **1. 装**（二选一）
 
-- 官方 CLI：`dsh plugin --profile desktop add ./dsh-prompt-inject-0.2.6.tgz`
+- 官方 CLI：`dsh plugin --profile desktop add ./dsh-prompt-inject-0.2.7.tgz`
 - 手工：把包放进 `<DSH_HOME>/profiles/<profile>/node_modules/dsh-prompt-inject`（链接或解压皆可），再在 `cordis.patch.yml` 末尾追加
 
   ```yaml
@@ -107,7 +107,7 @@ A rule is three things: **a name**, **a body**, and **which sessions it applies 
 
 ![Session panel](docs/session-panel.png)
 
-A **系统提示词注入** button sits at the right end of the status strip under the input box (the blank-session hero has the same one, top right). Open it to tick which rules this session injects — the ticks override condition matching. Text typed into the box becomes a rule that belongs to this session only.
+A **提示词注入** tab joins the row above the conversation (the blank-session hero carries a **系统提示词注入** button instead, top right). Switch to it and tick which rules this session injects — the ticks override condition matching. Text typed into the box becomes a rule that belongs to this session only.
 
 ## What it does
 
@@ -126,7 +126,7 @@ A **系统提示词注入** button sits at the right end of the status strip und
 
 **1. Install** (pick one)
 
-- Official CLI: `dsh plugin --profile desktop add ./dsh-prompt-inject-0.2.6.tgz`
+- Official CLI: `dsh plugin --profile desktop add ./dsh-prompt-inject-0.2.7.tgz`
 - Manual: place the package at `<DSH_HOME>/profiles/<profile>/node_modules/dsh-prompt-inject` (a link or an extracted copy), then append to `cordis.patch.yml`
 
   ```yaml

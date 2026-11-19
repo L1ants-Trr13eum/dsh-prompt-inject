@@ -158,13 +158,13 @@
 - 上移/下移/删除；新增规则（id 形如 `r-<随机>`）
 - 保存：POST 全量 config；成功后回填宿主返回值并清脏；失败显示 error；脏状态关闭设置页仍被拦截
 
-### 5.1 会话注入面板：输入框下方状态条按钮 + 开场区按钮 + 覆盖层 Modal
+### 5.1 会话注入面板：会话顶部标签行 + 开场区按钮 + 覆盖层 Modal
 - 四处注册，各自在 `ctx.slots.inject(...)` 内 `ctx.slots.register(...)`，且都经 `safeInject(ctx, slotName, make)` 逐 slot try/catch —— 某个 slot 在别的宿主版本里不存在时，不得连坐其余注册：
-  - `conversation.composer.dock` / id `prompt-inject-composer` / order 900 / `inject: sessionInject` → 「系统提示词注入」按钮（正常会话的主入口）。本机实测（2026-11-18，DSH 0.2.2-rc.3 桌面端）：这个 slot 落在**输入框下方的状态条**右侧，与「tok/s」「缓存命中」同一行，而不是输入框正上方——位置由宿主决定，插件不控制
-  - `conversation.hero.options` / id `prompt-inject-hero` / order 900 / `inject: sessionInject` → 同一颗按钮（新会话开场区；`ConversationContent.tsx:135` 只在 `sessionId !== undefined` 时渲染该行，故真正的「什么都没选中」形态没有按钮）
+  - `conversation.view` / id `prompt-inject` / order 900 / `label: '提示词注入'` / `inject: sessionInject` → 会话顶部标签行里的真标签（正常会话的主入口，与「对话 / 审查 / 上下文 / 统计」并列）。label 走字符串即可，宿主 `resolveSlotLabel` 会直出；`DefaultConversationViews` 一次只渲染选中的那个 view，所以标签内容就是正文区的整块面板
+  - `conversation.hero.options` / id `prompt-inject-hero` / order 900 / `inject: sessionInject` → 「系统提示词注入」按钮（新会话开场区；`ConversationContent.tsx:135` 只在 `sessionId !== undefined` 时渲染该行，故真正的「什么都没选中」形态没有按钮）
   - `shell.overlay` / id `prompt-inject-panel` / order 900 → 覆盖层面板（scope=root）
-  - 已下线：`conversation.view`（0.2.5 试过的顶部标签视图，用户反馈「会话途中从上方标签页注入」不要）。测试断言它的注册不再存在。
-- 两个入口共用同一颗 `InjectButton`：`data-pin="inject-button"`，外壳 `.pinin-launcher[data-pin="inject-launcher"]`。点击只做两件事——把会话 id 记进模块级 bridge、置 `bridge.open = true`；面板本体在 `shell.overlay` 里按 bridge 状态渲染。
+  - 已下线：`conversation.composer.dock`（0.2.6 试过，本机实测这个 slot 落在输入框下方状态条右侧，不是输入框正上方；0.2.7 按要求改回标签行）。测试断言它的注册不再存在。
+- 两个入口的形状不同：标签视图（`InjectView`，`.pinin-view`、`max-width:720px`、无遮罩、无关闭按钮、自带卡片底色与描边，见下一条）把面板内联进正文区；开场区按钮是 `InjectButton`（`data-pin="inject-button"`，外壳 `.pinin-launcher[data-pin="inject-launcher"]`），点击只做两件事——把会话 id 记进模块级 bridge、置 `bridge.open = true`，面板本体在 `shell.overlay` 里按 bridge 状态渲染。
 - 面板内容只有一份：`useSessionPanel({ sessionId, open, onClose })` 返回 `{ body, footer }`，`InjectPanel`（Modal）只负责包壳。
 - `sessionInject(sessionId)` 返回 `{ sessionId }`，宿主把它混进组件 props；该值可能是 `undefined`。`InjectButton` 以「这个 key 是否存在」判定是否有权威值，存在即以 props 为准（`undefined` 也认），访问器抛错才回落到模块级 bridge —— 否则卸载/重挂后按钮会残留上一个会话的 `data-session`。
 - 面板优先用 `@deepseek-ai/dsh-client-ui-primitives` 的 `Modal`（经 `safeRequire`，`typeof Modal === 'function'` 才用），取不到则用内置 `FallbackModal`（`.pinin-mask/.pinin-dialog`）；props 为 `{ open, onClose, title: '系统提示词注入', closeLabel: '关闭', footer, className }`；**不传 `description`**（弹窗标题下方没有第二段说明，见下一条）。`FallbackModal` 本来就不渲染 description，两套 Modal 的顶部现在一致。
